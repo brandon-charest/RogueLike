@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 
 using namespace std;
@@ -10,11 +11,19 @@ public:
 	Enemy(string name, char tile, int attack, int defense, int health, int xp, int level);
 	int attack();
 	int takeDamage(int attack);
+
 	//Setters
 	void setPosition(int x, int y);
+
 	//Getters
 	void getPosition(int &x, int &y);
 	string getName() { return _name; }
+	int getEnemyHealth() { return _health; }
+	char getTile() { return _tile; }
+
+	//AI Move
+	char getMove(int playerX, int playerY);
+
 
 private:
 	string _name;

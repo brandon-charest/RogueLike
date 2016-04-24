@@ -76,12 +76,18 @@ void Level::loadLevel(string fileName, Player &player)
 
 void Level::printLevel()
 {
-	cout << string(100, '\n');
+	//Originally used cout for a clear screen but encountered screen stuttering
+	//printf is generally faster
+	printf("%s", string(100, '\n').c_str());
 
 	for (int i = 0; i < _levelData.size(); i++) {
 		printf("%s\n", _levelData[i].c_str());
 	}
-	printf("\n");
+	if (_numPrints < 2) {
+		printf("%s", string(2 - _numPrints, '\n').c_str());
+	}
+
+	_numPrints = 0;
 }
 
 void Level::movePlayer(char input, Player &player)
@@ -89,19 +95,18 @@ void Level::movePlayer(char input, Player &player)
 
 	int playerX;
 	int playerY;
-
+	//gets player position
 	player.getPosition(playerX, playerY);
 	
 	switch (input) {
 		//move up
 	case 'w':
 	case 'W':
-		//move player up 1 tile
-		
+		//move player up 1 tile		
 		proccessPlayerMove(player, playerX, playerY -1);
 		break;
-		//move left
 
+		//move left
 	case 'a':
 	case 'A':
 		proccessPlayerMove(player, playerX -1, playerY);
@@ -125,6 +130,67 @@ void Level::movePlayer(char input, Player &player)
 	}
 }
 
+void Level::processEnemyMove(Player & player, int enemyIndex, int targetX, int targetY)
+{
+	int playerX;
+	int playerY;
+	int enemyX;
+	int enemyY;
+
+	player.getPosition(playerX, playerY);
+	_enemies[enemyIndex].getPosition(enemyX, enemyY);
+
+	char moveTile = getTile(targetX, targetY);
+
+	switch (moveTile) {
+	case '.':
+		_enemies[enemyIndex].setPosition(targetX, targetY);
+		setTile(enemyX, enemyY, '.');
+		setTile(targetX, targetY, _enemies[enemyIndex].getTile());
+		break;
+	case '@':
+		battleEnemy(player, enemyX, enemyY);
+		break;
+	default:
+		
+		break;
+	}
+}
+
+void Level::updateEnemy(Player & player)
+{
+	char aiMove;
+	int playerX;
+	int playerY;
+	int enemyX;
+	int enemyY;
+	//gets player position
+	player.getPosition(playerX, playerY);
+	//loops through enemies vector
+	for (int i = 0; i < _enemies.size(); i++) {
+		aiMove = _enemies[i].getMove(playerX, playerY);
+		_enemies[i].getPosition(enemyX, enemyY);
+		switch (aiMove) {
+			//move up
+		case 'w':				
+			processEnemyMove(player, i, enemyX, enemyY - 1);
+			break;
+			//move left
+		case 'a':	
+			processEnemyMove(player, i, enemyX - 1, enemyY);
+			break;
+			//move down
+		case 's':	
+			processEnemyMove(player, i, enemyX, enemyY + 1);
+			break;
+			//move right
+		case 'd':
+			processEnemyMove(player, i, enemyX + 1, enemyY);
+			break;		
+		}
+	}
+}
+
 //checks tiles surrounding player
 char Level::getTile(int x, int y)
 {
@@ -134,10 +200,10 @@ char Level::getTile(int x, int y)
 void Level::setTile(int x, int y, char tile)
 {
 	/*         Swaps tiles as player moves through them
-	#####	   #####
-	#@..# ---> #.@.#      this is an example for when 
-	#...#	   #...#      player moves right one tile
-	#####      #####                                         */
+				#####	   #####
+				#@..# ---> #.@.#      this is an example for when 
+				#...#	   #...#      player moves right one tile
+				#####      #####                                         */
 	_levelData[y][x] = tile;
 }
 
@@ -158,56 +224,74 @@ void Level::proccessPlayerMove(Player & player, int targetX, int targetY)
 	case '#':
 		break;
 	default:
-		battleMonster(player, targetX, targetY);
+		battleEnemy(player, targetX, targetY);
 		break;
 	}
 }
-
-void Level::battleMonster(Player & player, int targetX, int targetY)
+//Simulats combat between player and enemy
+void Level::battleEnemy(Player & player, int targetX, int targetY)
 {
 	int enemyX;
 	int enemyY;
 	int playerX;
 	int playerY;
 	int playerHealth;
+	int enemyHealth;
 	int attackRoll;
 	int attackResult;
 	string enemyName;
-
+	//get player position
 	player.getPosition(playerX, playerY);
 
 	for (int i = 0; i < _enemies.size(); i++) {
 
 		_enemies[i].getPosition(enemyX, enemyY);
+		//get enemy name and health
 		enemyName = _enemies[i].getName();
-			if (targetX == enemyX && targetY == enemyY) {
-				//Battle Takes Place
+		enemyHealth = _enemies[i].getEnemyHealth();
 
-				attackRoll = player.attack();
+			if (targetX == enemyX && targetY == enemyY) {
+				/***Battle Takes Place***/
+
+				/***Players Turn***/
+				attackRoll = player.attack();				
 				printf("\nPlayer attacked a %s for %d damage!\n", enemyName.c_str(), attackRoll);
 				attackResult = _enemies[i].takeDamage(attackRoll);
-
+				printf("***%s Current Health: %d\n", enemyName.c_str(), enemyHealth);
 				if (attackResult != 0) {
 					setTile(targetX, targetY, '.');
 					printLevel();
 					printf("You have slain %s!\n", enemyName.c_str());
+
+					//remove enemy
+					_enemies[i] = _enemies.back();
+					_enemies.pop_back();
+					i--;
+
 					system("PAUSE");
 					player.addExperience(attackResult);
 					
 					return;
 				}
 
-				//Enemy turn
+				system("PAUSE");
+
+				_numPrints += 2; 
+				printLevel(); //reprint the board
+
+				/***Enemy turn***/
 				attackRoll = _enemies[i].attack();
 				printf("\n%s attacked Player for %d damage!\n", enemyName.c_str(), attackRoll);
 				attackResult = player.takeDamage(attackRoll);
 				playerHealth = player.getCurrentHealth();
-				printf("***Players Current Health: %d\n", playerHealth);
+				printf("***Players Current Health: %d***\n", playerHealth);
 				if (attackResult != 0) {
+
+					//Player dies
 					setTile(playerX, playerY, 'X');
 					printLevel();
 					printf("You have been slain by %s!\n", enemyName.c_str());
-					printf("***Players Current Health: %d\n", playerHealth);
+					printf("***Players Current Health: %d***\n", playerHealth);
 					system("PAUSE");	
 
 					exit(0);

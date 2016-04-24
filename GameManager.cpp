@@ -17,6 +17,7 @@ void GameManager::playGame()
 	while (!isDone == true) {
 		_level.printLevel();
 		playerMove();
+		_level.updateEnemy(_player);
 	}
 }
 

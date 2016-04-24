@@ -50,3 +50,44 @@ void Enemy::getPosition(int &x, int &y)
 	x = _x;
 	y = _y;
 }
+
+char Enemy::getMove(int playerX, int playerY)
+{
+	static default_random_engine randomEngine(time(NULL));
+	uniform_int_distribution<int> moveRoll(0, 8);
+
+	int distance;
+	int dX = _x - playerX;
+	int dY = _y - playerY;
+	int absDX = abs(dX);
+	int absDY = abs(dY);
+	distance = absDX + absDY;
+
+	if (distance <= 5) {
+		//move along X axis
+		if (absDX > absDY) {
+			if (dX > 0) {return 'a';}
+			else { return 'd'; }
+		}
+		else { //move along Y axis
+			if (dY > 0) { return 'w'; }
+			else { return 's'; }
+		}
+	}
+
+	int randomMove = moveRoll(randomEngine);
+	switch (randomMove) {
+	case 0:
+		return 'a';
+	case 1:
+		return 'w';
+	case 2: 
+		return 's';
+	case 3:
+		return 'd';
+	default:
+		return '.';
+
+	}
+
+}
