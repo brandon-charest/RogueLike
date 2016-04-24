@@ -25,13 +25,8 @@ void GameManager::playerMove()
 	char input;
 	cout << "Enter a move command(w/a/s/d): ";
 	input = _getch();
+	_level.movePlayer(input, _player);
 
-	switch (input) {
-	case 'w':
-	case 'W':
-		break;
-	case 'W':
-	}
 }
 
 
