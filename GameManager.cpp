@@ -24,7 +24,8 @@ void GameManager::playGame()
 void GameManager::playerMove()
 {
 	char input;
-	cout << "Enter a move command(w/a/s/d): ";
+	cout << "To move press (w/a/s/d), to view player stats press (c): ";
+	
 	input = _getch();
 	_level.movePlayer(input, _player);
 

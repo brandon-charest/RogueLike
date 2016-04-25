@@ -55,6 +55,15 @@ void Player::addExperience(int experience)
 
 	}
 }
+
+
+void Player::playerStats()
+{
+	printf("\nCurrent Player Stats: \n Level: %d\n Health: %d\n Attack: %d\n Defense: %d\n Experience: %d\n",
+		_level, _health, _attack, _defense, _experience);
+}
+
+
 //Sets player position
 void Player::setPosition(int x, int y)
 {
@@ -67,6 +76,9 @@ void Player::getPosition(int &x, int &y)
 	x = _x;
 	y = _y;
 }
+
+
+
 
 
 

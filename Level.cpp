@@ -97,6 +97,7 @@ void Level::movePlayer(char input, Player &player)
 	int playerY;
 	//gets player position
 	player.getPosition(playerX, playerY);
+
 	
 	switch (input) {
 		//move up
@@ -122,6 +123,11 @@ void Level::movePlayer(char input, Player &player)
 	case 'd':
 	case 'D':
 		proccessPlayerMove(player, playerX + 1, playerY);
+		break;
+	case 'C':
+	case 'c':
+		player.playerStats();
+		system("PAUSE");
 		break;
 
 	default:
@@ -186,16 +192,21 @@ void Level::updateEnemy(Player & player)
 			//move right
 		case 'd':
 			processEnemyMove(player, i, enemyX + 1, enemyY);
-			break;		
+			break;	
+		
 		}
 	}
 }
 
-//checks tiles surrounding player
+//checks tiles surrounding player--------------
 char Level::getTile(int x, int y)
 {
 	return _levelData[y][x];
 }
+
+
+//Get player info-------------
+
 
 void Level::setTile(int x, int y, char tile)
 {
@@ -257,7 +268,7 @@ void Level::battleEnemy(Player & player, int targetX, int targetY)
 				attackRoll = player.attack();				
 				printf("\nPlayer attacked a %s for %d damage!\n", enemyName.c_str(), attackRoll);
 				attackResult = _enemies[i].takeDamage(attackRoll);
-				printf("***%s Current Health: %d\n", enemyName.c_str(), enemyHealth);
+				printf("***%s Current Health: %d***\n", enemyName.c_str(), enemyHealth);
 				if (attackResult != 0) {
 					setTile(targetX, targetY, '.');
 					printLevel();
